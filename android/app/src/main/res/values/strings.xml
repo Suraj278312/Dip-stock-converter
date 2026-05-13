@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Dip Stock Converter</string>
+    <string name="title_activity_main">Dip Stock Converter</string>
+    <string name="package_name">com.sfs.dipstock</string>
+    <string name="custom_url_scheme">com.sfs.dipstock</string>
+</resources>

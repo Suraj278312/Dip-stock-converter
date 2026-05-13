@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Dip Stock Converter</title>
+
+  <!-- CDNs for Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Light Mode by Default */
+      --bg-color: #f1f5f9;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(148, 163, 184, 0.2);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --danger: #ef4444;
+      --input-bg: rgba(255, 255, 255, 0.9);
+      --bg-gradient: radial-gradient(circle at top right, #e2e8f0, #f1f5f9);
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --danger: #ef4444;
+      --input-bg: rgba(15, 23, 42, 0.6);
+      --bg-gradient: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+    }
+
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      transition: background 0.3s, color 0.3s;
+    }
+
+
+
+    .app-container {
+      width: 100%;
+      max-width: 1000px;
+      padding: 30px 20px;
+      margin: 0 auto;
+    }
+
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+
+    @media (min-width: 800px) {
+      .dashboard-layout {
+        grid-template-columns: 1.2fr 1fr;
+      }
+    }
+
+    .header {
+      text-align: center;
+      padding: 10px 0 20px 0;
+      position: relative;
+    }
+
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Cards */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Forms & Inputs */
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    input,
+    select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 15px;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+
+    /* Results */
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .result-box {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .result-val {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .highlight-box {
+      background: linear-gradient(135deg, var(--primary), #2563eb);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .highlight-box .result-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+    }
+
+    .highlight-box .result-val {
+      color: #fff;
+      font-size: 36px;
+      font-weight: 700;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--input-bg);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: var(--bg-color);
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .close-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .close-btn:hover {
+      color: var(--text-main);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 8px;
+      text-align: left;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .delete-btn {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .delete-btn:hover {
+      background: var(--danger);
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+
+
+    <div class="header">
+      <h1>Dip Stock Converter</h1>
+      <p>Professional Fluid Calculation</p>
+      <button id="theme-toggle"
+        style="position: absolute; right: 0; top: 10px; background: transparent; border: none; font-size: 24px; cursor: pointer; color: var(--text-main);">
+        🌓
+      </button>
+    </div>
+
+    <div class="dashboard-layout">
+      <!-- Left Column -->
+      <div class="col-left">
+
+
+        <!-- Main Calculator -->
+        <div class="glass-card">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="16" height="20" x="4" y="2" rx="2" />
+              <line x1="8" x2="16" y1="6" y2="6" />
+              <line x1="16" x2="16" y1="14" y2="18" />
+              <path d="M16 10h.01" />
+              <path d="M12 10h.01" />
+              <path d="M8 10h.01" />
+              <path d="M12 14h.01" />
+              <path d="M8 14h.01" />
+              <path d="M12 18h.01" />
+              <path d="M8 18h.01" />
+            </svg>
+            Calculator
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="date-input">
+            </div>
+            <div class="form-group">
+              <label>Product</label>
+              <select id="product-input">
+                <option value="MS">MS (Petrol)</option>
+                <option value="HSD">HSD (Diesel)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Dip Reading</label>
+            <input type="number" id="dip-input" step="0.1" placeholder="e.g. 164.4"
+              style="font-size: 20px; padding: 15px; text-align: center; font-weight: 600;">
+          </div>
+
+          <!-- Editable Calculation Fields -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Volume</label>
+              <input type="number" id="volume-input" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label>Difference</label>
+              <input type="number" id="difference-input" step="0.01" placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Point Half</label>
+            <input type="number" id="pointhalf-input" step="0.5" placeholder="0">
+          </div>
+
+          <!-- Results Display -->
+          <div class="result-grid">
+            <div class="result-box">
+              <span class="result-label">Point Value</span>
+              <span class="result-val" id="res-point-value">0</span>
+            </div>
+            <div class="result-box">
+              <span class="result-label">Diff. Value</span>
+              <span class="result-val" id="res-diff-value">0.00</span>
+            </div>
+          </div>
+
+          <div class="highlight-box">
+            <span class="result-label">Actual Total Stock</span>
+            <div class="result-val" id="res-actual-stock">0</div>
+          </div>
+
+          <button id="save-btn" class="btn btn-primary">Save & Submit</button>
+        </div>
+
+
+      </div>
+      <!-- Right Column -->
+      <div class="col-right" style="display: flex; flex-direction: column; gap: 25px;">
+        <!-- Dip Search -->
+
+        <div class="glass-card">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            Quick Search
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Search Dip</label>
+              <input type="number" id="search-dip" step="1" placeholder="e.g. 164">
+            </div>
+          </div>
+          <div class="result-grid" style="margin-bottom: 0;">
+            <div class="result-box">
+              <span class="result-label">Volume</span>
+              <span class="result-val" id="sr-volume" style="color: var(--text-main); font-size: 16px;">0.00</span>
+            </div>
+            <div class="result-box">
+              <span class="result-label">Difference</span>
+              <span class="result-val" id="sr-difference" style="color: var(--text-main); font-size: 16px;">0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-row" style="justify-content: center; width: 100%;">
+          <div class="form-group" style="flex: 1;">
+            <button id="chart-btn" class="btn btn-secondary">Dip Chart</button>
+          </div>
+          <div class="form-group">
+            <button id="logs-btn" class="btn btn-secondary">View Logs</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- Logs Modal -->
+  <div class="modal-overlay" id="logs-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="font-size: 18px;">Calculation Logs</h2>
+        <button class="close-btn" id="close-logs">&times;</button>
+      </div>
+
+      <div class="form-row">
+        <button class="btn btn-primary" id="export-pdf-btn" style="padding: 8px;">Export PDF</button>
+        <button class="btn btn-secondary" id="export-excel-btn" style="padding: 8px;">Export Excel</button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Prd</th>
+              <th>Dip</th>
+              <th>Total Stock</th>
+              <th>Act</th>
+            </tr>
+          </thead>
+          <tbody id="logs-tbody">
+            <!-- Logs populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Modal -->
+  <div class="modal-overlay" id="chart-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="font-size: 18px;">Dip Reference Chart</h2>
+        <button class="close-btn" id="close-chart">&times;</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Dip</th>
+              <th>Volume</th>
+              <th>Diff</th>
+            </tr>
+          </thead>
+          <tbody id="chart-tbody">
+            <!-- Chart populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // --- Firebase Setup ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyC3Tg6o1Lt8rtaEC95hYSp5STYpB0BDtBw",
+      authDomain: "dip-stock-converter.firebaseapp.com",
+      projectId: "dip-stock-converter",
+      storageBucket: "dip-stock-converter.firebasestorage.app",
+      messagingSenderId: "645385366798",
+      appId: "1:645385366798:web:b9e15a08a17e0f08a13b5f",
+      measurementId: "G-PH406GNQWR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Enable Offline Support
+    enableIndexedDbPersistence(db).catch((err) => {
+      if (err.code == 'failed-precondition') {
+        console.warn('Multiple tabs open, offline support disabled in this tab.');
+      } else if (err.code == 'unimplemented') {
+        console.warn('Current browser does not support offline mode.');
+      }
+    });
+
+    // --- Mock Database ---
+    const dipChartData = [
+      { product: 'MS/HSD', dip: 1, volume: 11.97, difference: 1.20 },
+      { product: 'MS/HSD', dip: 2, volume: 33.89, difference: 2.19 },
+      { product: 'MS/HSD', dip: 3, volume: 62.22, difference: 2.83 },
+      { product: 'MS/HSD', dip: 4, volume: 95.71, difference: 3.35 },
+      { product: 'MS/HSD', dip: 5, volume: 133.61, difference: 3.79 },
+      { product: 'MS/HSD', dip: 6, volume: 175.43, difference: 4.18 },
+      { product: 'MS/HSD', dip: 7, volume: 220.80, difference: 4.54 },
+      { product: 'MS/HSD', dip: 8, volume: 269.41, difference: 4.86 },
+      { product: 'MS/HSD', dip: 9, volume: 321.05, difference: 5.16 },
+      { product: 'MS/HSD', dip: 10, volume: 375.51, difference: 5.45 },
+      { product: 'MS/HSD', dip: 11, volume: 432.63, difference: 5.71 },
+      { product: 'MS/HSD', dip: 12, volume: 492.26, difference: 5.96 },
+      { product: 'MS/HSD', dip: 13, volume: 554.27, difference: 6.20 },
+      { product: 'MS/HSD', dip: 14, volume: 618.56, difference: 6.43 },
+      { product: 'MS/HSD', dip: 15, volume: 685.03, difference: 6.65 },
+      { product: 'MS/HSD', dip: 16, volume: 753.57, difference: 6.85 },
+      { product: 'MS/HSD', dip: 17, volume: 824.11, difference: 7.05 },
+      { product: 'MS/HSD', dip: 18, volume: 896.57, difference: 7.25 },
+      { product: 'MS/HSD', dip: 19, volume: 970.88, difference: 7.43 },
+      { product: 'MS/HSD', dip: 20, volume: 1046.97, difference: 7.61 },
+      { product: 'MS/HSD', dip: 21, volume: 1124.79, difference: 7.78 },
+      { product: 'MS/HSD', dip: 22, volume: 1204.28, difference: 7.95 },
+      { product: 'MS/HSD', dip: 23, volume: 1285.38, difference: 8.11 },
+      { product: 'MS/HSD', dip: 24, volume: 1368.04, difference: 8.27 },
+      { product: 'MS/HSD', dip: 25, volume: 1452.22, difference: 8.42 },
+      { product: 'MS/HSD', dip: 26, volume: 1537.87, difference: 8.56 },
+      { product: 'MS/HSD', dip: 27, volume: 1624.95, difference: 8.71 },
+      { product: 'MS/HSD', dip: 28, volume: 1713.41, difference: 8.85 },
+      { product: 'MS/HSD', dip: 29, volume: 1803.22, difference: 8.98 },
+      { product: 'MS/HSD', dip: 30, volume: 1894.35, difference: 9.11 },
+      { product: 'MS/HSD', dip: 31, volume: 1986.75, difference: 9.24 },
+      { product: 'MS/HSD', dip: 32, volume: 2080.39, difference: 9.36 },
+      { product: 'MS/HSD', dip: 33, volume: 2175.24, difference: 9.49 },
+      { product: 'MS/HSD', dip: 34, volume: 2271.27, difference: 9.60 },
+      { product: 'MS/HSD', dip: 35, volume: 2368.44, difference: 9.72 },
+      { product: 'MS/HSD', dip: 36, volume: 2466.74, difference: 9.83 },
+      { product: 'MS/HSD', dip: 37, volume: 2566.12, difference: 9.94 },
+      { product: 'MS/HSD', dip: 38, volume: 2666.57, difference: 10.04 },
+      { product: 'MS/HSD', dip: 39, volume: 2768.05, difference: 10.15 },
+      { product: 'MS/HSD', dip: 40, volume: 2870.54, difference: 10.25 },
+      { product: 'MS/HSD', dip: 41, volume: 2974.02, difference: 10.35 },
+      { product: 'MS/HSD', dip: 42, volume: 3078.46, difference: 10.44 },
+      { product: 'MS/HSD', dip: 43, volume: 3183.83, difference: 10.54 },
+      { product: 'MS/HSD', dip: 44, volume: 3290.12, difference: 10.63 },
+      { product: 'MS/HSD', dip: 45, volume: 3397.31, difference: 10.72 },
+      { product: 'MS/HSD', dip: 46, volume: 3505.36, difference: 10.81 },
+      { product: 'MS/HSD', dip: 47, volume: 3614.26, difference: 10.89 },
+      { product: 'MS/HSD', dip: 48, volume: 3723.99, difference: 10.97 },
+      { product: 'MS/HSD', dip: 49, volume: 3834.53, difference: 11.05 },
+      { product: 'MS/HSD', dip: 50, volume: 3945.86, difference: 11.13 },
+      { product: 'MS/HSD', dip: 51, volume: 4057.96, difference: 11.21 },
+      { product: 'MS/HSD', dip: 52, volume: 4170.80, difference: 11.28 },
+      { product: 'MS/HSD', dip: 53, volume: 4284.38, difference: 11.36 },
+      { product: 'MS/HSD', dip: 54, volume: 4398.67, difference: 11.43 },
+      { product: 'MS/HSD', dip: 55, volume: 4513.65, difference: 11.50 },
+      { product: 'MS/HSD', dip: 56, volume: 4629.31, difference: 11.57 },
+      { product: 'MS/HSD', dip: 57, volume: 4745.63, difference: 11.63 },
+      { product: 'MS/HSD', dip: 58, volume: 4862.59, difference: 11.70 },
+      { product: 'MS/HSD', dip: 59, volume: 4980.18, difference: 11.76 },
+      { product: 'MS/HSD', dip: 60, volume: 5098.38, difference: 11.82 },
+      { product: 'MS/HSD', dip: 61, volume: 5217.17, difference: 11.88 },
+      { product: 'MS/HSD', dip: 62, volume: 5336.53, difference: 11.94 },
+      { product: 'MS/HSD', dip: 63, volume: 5456.46, difference: 11.99 },
+      { product: 'MS/HSD', dip: 64, volume: 5576.94, difference: 12.05 },
+      { product: 'MS/HSD', dip: 65, volume: 5697.94, difference: 12.10 },
+      { product: 'MS/HSD', dip: 66, volume: 5819.46, difference: 12.15 },
+      { product: 'MS/HSD', dip: 67, volume: 5941.48, difference: 12.20 },
+      { product: 'MS/HSD', dip: 68, volume: 6063.98, difference: 12.25 },
+      { product: 'MS/HSD', dip: 69, volume: 6186.96, difference: 12.30 },
+      { product: 'MS/HSD', dip: 70, volume: 6310.39, difference: 12.34 },
+      { product: 'MS/HSD', dip: 71, volume: 6434.26, difference: 12.39 },
+      { product: 'MS/HSD', dip: 72, volume: 6558.56, difference: 12.43 },
+      { product: 'MS/HSD', dip: 73, volume: 6683.28, difference: 12.47 },
+      { product: 'MS/HSD', dip: 74, volume: 6808.39, difference: 12.51 },
+      { product: 'MS/HSD', dip: 75, volume: 6933.89, difference: 12.55 },
+      { product: 'MS/HSD', dip: 76, volume: 7059.77, difference: 12.59 },
+      { product: 'MS/HSD', dip: 77, volume: 7186.00, difference: 12.62 },
+      { product: 'MS/HSD', dip: 78, volume: 7312.58, difference: 12.66 },
+      { product: 'MS/HSD', dip: 79, volume: 7439.49, difference: 12.69 },
+      { product: 'MS/HSD', dip: 80, volume: 7566.72, difference: 12.72 },
+      { product: 'MS/HSD', dip: 81, volume: 7694.26, difference: 12.75 },
+      { product: 'MS/HSD', dip: 82, volume: 7822.09, difference: 12.78 },
+      { product: 'MS/HSD', dip: 83, volume: 7950.20, difference: 12.81 },
+      { product: 'MS/HSD', dip: 84, volume: 8078.58, difference: 12.84 },
+      { product: 'MS/HSD', dip: 85, volume: 8207.21, difference: 12.86 },
+      { product: 'MS/HSD', dip: 86, volume: 8336.09, difference: 12.89 },
+      { product: 'MS/HSD', dip: 87, volume: 8465.20, difference: 12.91 },
+      { product: 'MS/HSD', dip: 88, volume: 8594.52, difference: 12.93 },
+      { product: 'MS/HSD', dip: 89, volume: 8724.05, difference: 12.95 },
+      { product: 'MS/HSD', dip: 90, volume: 8853.77, difference: 12.97 },
+      { product: 'MS/HSD', dip: 91, volume: 8983.68, difference: 12.99 },
+      { product: 'MS/HSD', dip: 92, volume: 9113.75, difference: 13.01 },
+      { product: 'MS/HSD', dip: 93, volume: 9243.97, difference: 13.02 },
+      { product: 'MS/HSD', dip: 94, volume: 9374.34, difference: 13.04 },
+      { product: 'MS/HSD', dip: 95, volume: 9504.85, difference: 13.05 },
+      { product: 'MS/HSD', dip: 96, volume: 9635.47, difference: 13.06 },
+      { product: 'MS/HSD', dip: 97, volume: 9766.20, difference: 13.07 },
+      { product: 'MS/HSD', dip: 98, volume: 9897.02, difference: 13.08 },
+      { product: 'MS/HSD', dip: 99, volume: 10027.93, difference: 13.09 },
+      { product: 'MS/HSD', dip: 100, volume: 10158.91, difference: 13.10 },
+      { product: 'MS/HSD', dip: 101, volume: 10289.95, difference: 13.10 },
+      { product: 'MS/HSD', dip: 102, volume: 10421.04, difference: 13.11 },
+      { product: 'MS/HSD', dip: 103, volume: 10552.16, difference: 13.11 },
+      { product: 'MS/HSD', dip: 104, volume: 10683.31, difference: 13.11 },
+      { product: 'MS/HSD', dip: 105, volume: 10814.47, difference: 13.12 },
+      { product: 'MS/HSD', dip: 106, volume: 10945.62, difference: 13.12 },
+      { product: 'MS/HSD', dip: 107, volume: 11076.77, difference: 13.11 },
+      { product: 'MS/HSD', dip: 108, volume: 11207.89, difference: 13.11 },
+      { product: 'MS/HSD', dip: 109, volume: 11338.98, difference: 13.11 },
+      { product: 'MS/HSD', dip: 110, volume: 11470.02, difference: 13.10 },
+      { product: 'MS/HSD', dip: 111, volume: 11601.00, difference: 13.10 },
+      { product: 'MS/HSD', dip: 112, volume: 11731.91, difference: 13.09 },
+      { product: 'MS/HSD', dip: 113, volume: 11862.73, difference: 13.08 },
+      { product: 'MS/HSD', dip: 114, volume: 11993.46, difference: 13.07 },
+      { product: 'MS/HSD', dip: 115, volume: 12124.08, difference: 13.06 },
+      { product: 'MS/HSD', dip: 116, volume: 12254.59, difference: 13.05 },
+      { product: 'MS/HSD', dip: 117, volume: 12384.96, difference: 13.04 },
+      { product: 'MS/HSD', dip: 118, volume: 12515.18, difference: 13.02 },
+      { product: 'MS/HSD', dip: 119, volume: 12645.26, difference: 13.01 },
+      { product: 'MS/HSD', dip: 120, volume: 12775.16, difference: 12.99 },
+      { product: 'MS/HSD', dip: 121, volume: 12904.88, difference: 12.97 },
+      { product: 'MS/HSD', dip: 122, volume: 13034.41, difference: 12.95 },
+      { product: 'MS/HSD', dip: 123, volume: 13163.73, difference: 12.93 },
+      { product: 'MS/HSD', dip: 124, volume: 13292.84, difference: 12.91 },
+      { product: 'MS/HSD', dip: 125, volume: 13421.72, difference: 12.89 },
+      { product: 'MS/HSD', dip: 126, volume: 13550.35, difference: 12.86 },
+      { product: 'MS/HSD', dip: 127, volume: 13678.73, difference: 12.84 },
+      { product: 'MS/HSD', dip: 128, volume: 13806.84, difference: 12.81 },
+      { product: 'MS/HSD', dip: 129, volume: 13934.67, difference: 12.78 },
+      { product: 'MS/HSD', dip: 130, volume: 14062.21, difference: 12.75 },
+      { product: 'MS/HSD', dip: 131, volume: 14189.44, difference: 12.72 },
+      { product: 'MS/HSD', dip: 132, volume: 14316.35, difference: 12.69 },
+      { product: 'MS/HSD', dip: 133, volume: 14442.93, difference: 12.66 },
+      { product: 'MS/HSD', dip: 134, volume: 14569.16, difference: 12.62 },
+      { product: 'MS/HSD', dip: 135, volume: 14695.04, difference: 12.59 },
+      { product: 'MS/HSD', dip: 136, volume: 14820.54, difference: 12.55 },
+      { product: 'MS/HSD', dip: 137, volume: 14945.65, difference: 12.51 },
+      { product: 'MS/HSD', dip: 138, volume: 15070.37, difference: 12.47 },
+      { product: 'MS/HSD', dip: 139, volume: 15194.67, difference: 12.43 },
+      { product: 'MS/HSD', dip: 140, volume: 15318.54, difference: 12.39 },
+      { product: 'MS/HSD', dip: 141, volume: 15441.97, difference: 12.34 },
+      { product: 'MS/HSD', dip: 142, volume: 15564.95, difference: 12.30 },
+      { product: 'MS/HSD', dip: 143, volume: 15687.45, difference: 12.25 },
+      { product: 'MS/HSD', dip: 144, volume: 15809.47, difference: 12.20 },
+      { product: 'MS/HSD', dip: 145, volume: 15930.99, difference: 12.15 },
+      { product: 'MS/HSD', dip: 146, volume: 16051.99, difference: 12.10 },
+      { product: 'MS/HSD', dip: 147, volume: 16172.47, difference: 12.05 },
+      { product: 'MS/HSD', dip: 148, volume: 16292.40, difference: 11.99 },
+      { product: 'MS/HSD', dip: 149, volume: 16411.76, difference: 11.94 },
+      { product: 'MS/HSD', dip: 150, volume: 16530.55, difference: 11.88 },
+      { product: 'MS/HSD', dip: 151, volume: 16648.75, difference: 11.82 },
+      { product: 'MS/HSD', dip: 152, volume: 16766.34, difference: 11.76 },
+      { product: 'MS/HSD', dip: 153, volume: 16883.30, difference: 11.70 },
+      { product: 'MS/HSD', dip: 154, volume: 16999.62, difference: 11.63 },
+      { product: 'MS/HSD', dip: 155, volume: 17115.28, difference: 11.57 },
+      { product: 'MS/HSD', dip: 156, volume: 17230.26, difference: 11.50 },
+      { product: 'MS/HSD', dip: 157, volume: 17344.55, difference: 11.43 },
+      { product: 'MS/HSD', dip: 158, volume: 17458.13, difference: 11.36 },
+      { product: 'MS/HSD', dip: 159, volume: 17570.97, difference: 11.28 },
+      { product: 'MS/HSD', dip: 160, volume: 17683.07, difference: 11.21 },
+      { product: 'MS/HSD', dip: 161, volume: 17794.40, difference: 11.13 },
+      { product: 'MS/HSD', dip: 162, volume: 17904.94, difference: 11.05 },
+      { product: 'MS/HSD', dip: 163, volume: 18014.67, difference: 10.97 },
+      { product: 'MS/HSD', dip: 164, volume: 18123.57, difference: 10.89 },
+      { product: 'MS/HSD', dip: 165, volume: 18231.62, difference: 10.81 },
+      { product: 'MS/HSD', dip: 166, volume: 18338.81, difference: 10.72 },
+      { product: 'MS/HSD', dip: 167, volume: 18445.10, difference: 10.63 },
+      { product: 'MS/HSD', dip: 168, volume: 18550.47, difference: 10.54 },
+      { product: 'MS/HSD', dip: 169, volume: 18654.91, difference: 10.44 },
+      { product: 'MS/HSD', dip: 170, volume: 18758.39, difference: 10.35 },
+      { product: 'MS/HSD', dip: 171, volume: 18860.88, difference: 10.25 },
+      { product: 'MS/HSD', dip: 172, volume: 18962.36, difference: 10.15 },
+      { product: 'MS/HSD', dip: 173, volume: 19062.81, difference: 10.04 },
+      { product: 'MS/HSD', dip: 174, volume: 19162.19, difference: 9.94 },
+      { product: 'MS/HSD', dip: 175, volume: 19260.49, difference: 9.83 },
+      { product: 'MS/HSD', dip: 176, volume: 19357.66, difference: 9.72 },
+      { product: 'MS/HSD', dip: 177, volume: 19453.69, difference: 9.60 },
+      { product: 'MS/HSD', dip: 178, volume: 19548.54, difference: 9.49 },
+      { product: 'MS/HSD', dip: 179, volume: 19642.18, difference: 9.36 },
+      { product: 'MS/HSD', dip: 180, volume: 19734.58, difference: 9.24 },
+      { product: 'MS/HSD', dip: 181, volume: 19825.71, difference: 9.11 },
+      { product: 'MS/HSD', dip: 182, volume: 19915.52, difference: 8.98 },
+      { product: 'MS/HSD', dip: 183, volume: 20003.98, difference: 8.85 },
+      { product: 'MS/HSD', dip: 184, volume: 20091.06, difference: 8.71 },
+      { product: 'MS/HSD', dip: 185, volume: 20176.71, difference: 8.56 },
+      { product: 'MS/HSD', dip: 186, volume: 20260.89, difference: 8.42 },
+      { product: 'MS/HSD', dip: 187, volume: 20343.55, difference: 8.27 },
+      { product: 'MS/HSD', dip: 188, volume: 20424.65, difference: 8.11 },
+      { product: 'MS/HSD', dip: 189, volume: 20504.14, difference: 7.95 },
+      { product: 'MS/HSD', dip: 190, volume: 20581.96, difference: 7.78 },
+      { product: 'MS/HSD', dip: 191, volume: 20658.05, difference: 7.61 },
+      { product: 'MS/HSD', dip: 192, volume: 20732.36, difference: 7.43 },
+      { product: 'MS/HSD', dip: 193, volume: 20804.82, difference: 7.25 },
+      { product: 'MS/HSD', dip: 194, volume: 20875.36, difference: 7.05 },
+      { product: 'MS/HSD', dip: 195, volume: 20943.91, difference: 6.85 },
+      { product: 'MS/HSD', dip: 196, volume: 21010.37, difference: 6.65 },
+      { product: 'MS/HSD', dip: 197, volume: 21074.66, difference: 6.43 },
+      { product: 'MS/HSD', dip: 198, volume: 21136.67, difference: 6.20 },
+      { product: 'MS/HSD', dip: 199, volume: 21196.30, difference: 5.96 },
+      { product: 'MS/HSD', dip: 200, volume: 21253.42, difference: 5.71 },
+      { product: 'MS/HSD', dip: 201, volume: 21307.88, difference: 5.45 },
+      { product: 'MS/HSD', dip: 202, volume: 21359.52, difference: 5.16 },
+      { product: 'MS/HSD', dip: 203, volume: 21408.13, difference: 4.86 },
+      { product: 'MS/HSD', dip: 204, volume: 21453.50, difference: 4.54 },
+      { product: 'MS/HSD', dip: 205, volume: 21495.32, difference: 4.18 },
+      { product: 'MS/HSD', dip: 206, volume: 21533.22, difference: 3.79 },
+      { product: 'MS/HSD', dip: 207, volume: 21566.71, difference: 3.35 },
+      { product: 'MS/HSD', dip: 208, volume: 21595.04, difference: 2.83 },
+      { product: 'MS/HSD', dip: 209, volume: 21616.96, difference: 2.19 },
+      { product: 'MS/HSD', dip: 210, volume: 21628.93, difference: 1.20 },
+    ];
+
+    function getDipChartEntry(product, baseDip) {
+      // The provided chart applies to the selected tank regardless of product dropdown.
+      return dipChartData.find(entry => entry.dip === baseDip);
+    }
+
+    // --- Firebase Database Functions ---
+    // A cache for logs so we don't query repeatedly unless needed
+    let cachedLogs = [];
+
+    async function getLogs() {
+      try {
+        const q = query(collection(db, "dip_stock_logs"), orderBy("created_at", "desc"));
+        const snapshot = await getDocs(q);
+        const logs = [];
+        snapshot.forEach((doc) => {
+          logs.push({ id: doc.id, ...doc.data() });
+        });
+        cachedLogs = logs;
+        return logs;
+      } catch (e) {
+        console.error("Error fetching logs: ", e);
+        return cachedLogs; // return cached on error
+      }
+    }
+
+    async function saveLog(logEntry) {
+      try {
+        logEntry.created_at = serverTimestamp();
+        const docRef = await addDoc(collection(db, "dip_stock_logs"), logEntry);
+        logEntry.id = docRef.id;
+        // Optionally update cache locally to avoid re-fetch immediately
+        cachedLogs.unshift(logEntry);
+        return logEntry;
+      } catch (e) {
+        console.error("Error adding document: ", e);
+        alert("Failed to save to cloud.");
+        return null;
+      }
+    }
+
+    async function deleteLog(id) {
+      try {
+        await deleteDoc(doc(db, "dip_stock_logs", id));
+        cachedLogs = cachedLogs.filter(log => log.id !== id);
+      } catch (e) {
+        console.error("Error deleting document: ", e);
+        alert("Failed to delete log from cloud.");
+      }
+    }
+
+
+    // --- UI Logic ---
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Theme Toggle
+      const themeToggle = document.getElementById('theme-toggle');
+      const currentTheme = localStorage.getItem('theme') || 'dark';
+      document.body.setAttribute('data-theme', currentTheme);
+
+      themeToggle.addEventListener('click', () => {
+        const newTheme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+      });
+
+
+      // Elements
+      const dateInput = document.getElementById('date-input');
+      const productInput = document.getElementById('product-input');
+      const dipInput = document.getElementById('dip-input');
+
+      const volumeInput = document.getElementById('volume-input');
+      const differenceInput = document.getElementById('difference-input');
+      const pointHalfInput = document.getElementById('pointhalf-input');
+
+      const resPointValue = document.getElementById('res-point-value');
+      const resDiffValue = document.getElementById('res-diff-value');
+      const resActualStock = document.getElementById('res-actual-stock');
+
+      // Set Default Date
+      dateInput.valueAsDate = new Date();
+
+      // Recalculate everything based on the current inputs
+      function recalculate() {
+        const volumeVal = parseFloat(volumeInput.value) || 0;
+        const differenceVal = parseFloat(differenceInput.value) || 0;
+        const pointHalfVal = parseFloat(pointHalfInput.value) || 0;
+
+        const pointValue = pointHalfVal * 2;
+        const diffValue = differenceVal * pointValue;
+        const actualTotalStock = Math.round(volumeVal + diffValue);
+
+        resPointValue.innerText = pointValue;
+        resDiffValue.innerText = diffValue.toFixed(2);
+        resActualStock.innerText = actualTotalStock;
+      }
+
+      // Listeners
+      dipInput.addEventListener('input', recalculate);
+      productInput.addEventListener('change', recalculate);
+
+      // Listeners for manual overrides
+      volumeInput.addEventListener('input', recalculate);
+      differenceInput.addEventListener('input', recalculate);
+      pointHalfInput.addEventListener('input', recalculate);
+
+      // Search Logic
+      const searchDip = document.getElementById('search-dip');
+      const srVolume = document.getElementById('sr-volume');
+      const srDifference = document.getElementById('sr-difference');
+
+      function performSearch() {
+        const val = searchDip.value;
+        const product = productInput.value;
+
+        if (!val) {
+          srVolume.innerText = '0.00';
+          srDifference.innerText = '0.00';
+          return;
+        }
+
+        const chartData = getDipChartEntry(product, parseInt(val));
+        if (chartData) {
+          srVolume.innerText = chartData.volume.toFixed(2);
+          srDifference.innerText = chartData.difference.toFixed(2);
+        } else {
+          srVolume.innerText = 'Not Found';
+          srDifference.innerText = 'Not Found';
+        }
+      }
+
+      searchDip.addEventListener('input', performSearch);
+
+      // Save Logic
+      const saveBtn = document.getElementById('save-btn');
+      saveBtn.addEventListener('click', async () => {
+        if (!dipInput.value || !volumeInput.value) {
+          alert("Please enter at least a Dip reading and Volume to save.");
+          return;
+        }
+
+        saveBtn.innerText = "Saving...";
+        saveBtn.disabled = true;
+
+        const pointHalfVal = parseFloat(pointHalfInput.value) || 0;
+        const pointValue = pointHalfVal * 2;
+        const diffValue = (parseFloat(differenceInput.value) || 0) * pointValue;
+        const actualTotalStock = Math.round((parseFloat(volumeInput.value) || 0) + diffValue);
+
+        const logEntry = {
+          date: dateInput.value,
+          product: productInput.value,
+          dip: dipInput.value,
+          volume: parseFloat(volumeInput.value) || 0,
+          difference: parseFloat(differenceInput.value) || 0,
+          pointHalf: pointHalfVal,
+          pointValue: pointValue,
+          diffValue: diffValue.toFixed(2),
+          actual_total_stock: actualTotalStock
+        };
+
+        await saveLog(logEntry);
+
+        // Reset
+        dipInput.value = '';
+        volumeInput.value = '';
+        differenceInput.value = '';
+        pointHalfInput.value = '';
+        recalculate();
+
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Saved Successfully!";
+        setTimeout(() => saveBtn.innerText = "Save & Submit", 2000);
+      });
+
+      // Modals
+      const logsModal = document.getElementById('logs-modal');
+      const chartModal = document.getElementById('chart-modal');
+
+      document.getElementById('logs-btn').addEventListener('click', () => {
+        renderLogs();
+        logsModal.style.display = 'flex';
+      });
+      document.getElementById('close-logs').addEventListener('click', () => {
+        logsModal.style.display = 'none';
+      });
+
+      document.getElementById('chart-btn').addEventListener('click', () => {
+        renderChart();
+        chartModal.style.display = 'flex';
+      });
+      document.getElementById('close-chart').addEventListener('click', () => {
+        chartModal.style.display = 'none';
+      });
+
+      // Logs Rendering
+      const logsTbody = document.getElementById('logs-tbody');
+      async function renderLogs() {
+        logsTbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Loading logs...</td></tr>`;
+        const logs = await getLogs();
+        logsTbody.innerHTML = '';
+        if (logs.length === 0) {
+          logsTbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No logs found</td></tr>`;
+          return;
+        }
+
+        logs.forEach(log => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${log.date}</td>
+            <td>${log.product}</td>
+            <td>${log.dip}</td>
+            <td style="font-weight: bold; color: var(--primary);">${log.actual_total_stock}</td>
+            <td style="white-space: nowrap;">
+              <div style="display: inline-flex; gap: 4px; margin-right: 8px;">
+                <button class="download-pdf-btn" data-id="${log.id}" style="background: rgba(59, 130, 246, 0.1); color: var(--primary); border: 1px solid rgba(59, 130, 246, 0.2); padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600;" title="Download PDF">PDF</button>
+                <button class="download-excel-btn" data-id="${log.id}" style="background: rgba(16, 185, 129, 0.1); color: var(--accent); border: 1px solid rgba(16, 185, 129, 0.2); padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600;" title="Download Excel">XLS</button>
+              </div>
+              <button class="delete-btn" data-id="${log.id}">Del</button>
+            </td>
+          `;
+          logsTbody.appendChild(tr);
+        });
+
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            if (confirm("Delete log?")) {
+              e.target.innerText = "Wait...";
+              e.target.disabled = true;
+              await deleteLog(e.target.closest('button').getAttribute('data-id'));
+              renderLogs();
+            }
+          });
+        });
+
+        document.querySelectorAll('.download-pdf-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = e.target.closest('button').getAttribute('data-id');
+            const log = logs.find(l => l.id === id);
+            if (log) downloadSingleLog(log);
+          });
+        });
+
+        document.querySelectorAll('.download-excel-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = e.target.closest('button').getAttribute('data-id');
+            const log = logs.find(l => l.id === id);
+            if (log) downloadSingleLogExcel(log);
+          });
+        });
+      }
+
+      function downloadSingleLogExcel(log) {
+        if (!window.XLSX) return alert('Excel library loading...');
+        const data = [{
+          'Date': log.date,
+          'Product': log.product,
+          'Dip': log.dip,
+          'Volume': log.volume,
+          'Difference': log.difference,
+          'Point Half': log.pointHalf,
+          'Point Value': log.pointValue,
+          'Diff Value': log.diffValue,
+          'Total Stock': log.actual_total_stock
+        }];
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Receipt");
+        XLSX.writeFile(wb, `Log_${log.date}_${log.product.replace('/', '-')}.xlsx`);
+      }
+
+      function downloadSingleLog(log) {
+        if (!window.jspdf) return alert('PDF library loading...');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text('Dip Stock Receipt', 14, 22);
+
+        doc.setFontSize(12);
+        doc.text(`Date: ${log.date}`, 14, 32);
+        doc.text(`Product: ${log.product}`, 14, 40);
+        doc.text(`Dip: ${log.dip}`, 14, 48);
+        doc.text(`Volume: ${log.volume}`, 14, 56);
+        doc.text(`Difference: ${log.difference}`, 14, 64);
+        doc.text(`Point Half: ${log.pointHalf}`, 14, 72);
+        doc.text(`Point Value: ${log.pointValue}`, 14, 80);
+        doc.text(`Diff Value: ${log.diffValue}`, 14, 88);
+
+        doc.setFontSize(14);
+        doc.setTextColor(59, 130, 246);
+        doc.text(`Actual Total Stock: ${log.actual_total_stock}`, 14, 100);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text('Made By Suraj Debnath', doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+
+        doc.save(`Log_${log.date}_${log.product.replace('/', '-')}.pdf`);
+      }
+
+      // Chart Rendering
+      function renderChart() {
+        const tbody = document.getElementById('chart-tbody');
+        tbody.innerHTML = '';
+        dipChartData.forEach(d => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${d.product}</td>
+            <td>${d.dip}</td>
+            <td>${d.volume.toFixed(2)}</td>
+            <td>${d.difference.toFixed(2)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Export Logic
+      document.getElementById('export-pdf-btn').addEventListener('click', async () => {
+        if (!window.jspdf) return alert('PDF library loading...');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text('Dip Stock Logs', 14, 22);
+
+        const btn = document.getElementById('export-pdf-btn');
+        btn.innerText = "Exporting...";
+        const logs = await getLogs();
+        btn.innerText = "Export PDF";
+
+        const tableData = logs.map(l => [l.date, l.product, l.dip, l.volume, l.difference, l.actual_total_stock]);
+
+        doc.autoTable({
+          head: [['Date', 'Product', 'Dip', 'Volume', 'Diff', 'Total']],
+          body: tableData,
+          startY: 30,
+          theme: 'grid',
+          headStyles: { fillColor: [59, 130, 246] }
+        });
+
+        // Add footer to every page
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.text('Made By Suraj Debnath', doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+        }
+
+        const dateStr = new Date().toISOString().split('T')[0];
+        doc.save(`Dip_Stock_Logs_${dateStr}.pdf`);
+      });
+
+      document.getElementById('export-excel-btn').addEventListener('click', async () => {
+        if (!window.XLSX) return alert('Excel library loading...');
+        const btn = document.getElementById('export-excel-btn');
+        btn.innerText = "Exporting...";
+        const logs = await getLogs();
+        btn.innerText = "Export Excel";
+        
+        const ws = XLSX.utils.json_to_sheet(logs);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Logs");
+        const dateStr = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `Dip_Stock_Logs_${dateStr}.xlsx`);
+      });
+
+    });
+  </script>
+</body>
+
+</html>
